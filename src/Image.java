@@ -71,15 +71,41 @@ public class Image {
 			int label = Integer.parseInt(filename.substring(1, 3)); // xx
 			
 			if (label < 1 || label > 9) 
-				System.out.println("WARNING, filename implied a new label of " + label);
+				System.err.println("WARNING, filename implied a new label of " + label);
 			else {
 				this.label = label;
 				return true;
 			}
 		}
-		else {
-			System.out.println("Filename is shot ! check filename");
-		}
+		else 
+			System.err.println("Filename is short [" + filename + "]");
+		
 		return false;
+	}
+	
+	@Override
+	public String toString() {
+		return "[+] class: " +  get_class() + " | Representation type: " + representation_name  + "  | Image_path: " + img_path;
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		
+		if (o == this) 
+			return true;
+		
+		if (! (o instanceof Image) || o == null) 
+			return false;
+		
+		Image other = (Image) o;
+		
+		return other.get_representation().equals(this.rep) && 
+			   other.get_label() == this.label;
+		
+	}
+	
+	@Override
+	public int hashCode() {
+		return rep.get_data().hashCode();
 	}
 }

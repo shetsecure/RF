@@ -28,10 +28,13 @@ public class Representation {
 					break;
 				case 90:
 					name = "SA";
+					break;
 				case 100:
 					name = "GFD";
+					break;
 				case 128:
 					name = "F0";
+					break;
 				default:
 					throw new BadRepresentationFileException("Unknown representation !");
 			}
@@ -66,10 +69,10 @@ public class Representation {
 	                				 .collect(Collectors.toList());
 			return data;
 		} catch (NoSuchFileException e) {
-			System.out.println("File not found !");
+			System.err.println("File not found !");
 		    e.printStackTrace();
 		} catch (IOException e) {
-			System.out.println(e.getMessage());
+			System.err.println(e.getMessage());
 		    e.printStackTrace();
 		}
 		
@@ -77,7 +80,8 @@ public class Representation {
 	}
 	
 	private void construct_filename_from_path() {
-		Pattern p = Pattern.compile("s[0-9][0-9]n[0-9][0-9][0-9][.]");
+		Pattern p = Pattern.compile("s[0-9][0-9]n[0-9][0-9][0-9][.]", Pattern.CASE_INSENSITIVE);
+		// added Pattern.CASE_INSENSITIVE, because an example of failure: S02n005.GFD
         Matcher m = p.matcher(this.file_path);
         
         if (m.find()) {
@@ -87,4 +91,19 @@ public class Representation {
         	this.filename = match.substring(0, match.length() - 1); 
         }  	 
 	}
-}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (o == this)
+			return true;
+		
+		if (! (o instanceof Representation) || o == null)
+			return false;
+		
+		Representation other = (Representation) o;
+		
+		
+		return other.get_data().equals(this.data) &&
+			   other.get_name().equals(this.name);
+	}
+} 
