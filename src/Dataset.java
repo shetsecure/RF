@@ -11,9 +11,9 @@ import java.util.stream.Collectors;
 
 public class Dataset {
 	/*
-	 * Dataset class will contain a map of (Image, label)
+	 * Dataset class will contain a map of (Image, label (int))
 	 * 
-	 * Dataset needs to be coherent ( Only one type of representation will be used )
+	 * Dataset needs to be coherent ( Only one type of representation can be used )
 	 * 
 	 * Type of representation that will be used, will be determined by the first
 	 * inserted image.
@@ -21,7 +21,7 @@ public class Dataset {
 	
 	private Map<Image, Integer> dataset;
 	private String representation_type;
-	private boolean first_datapoint;
+	private boolean first_datapoint; // useful for the next insertion after the rep_type is determined
 	
 	public Dataset() {
 		dataset = new HashMap<>();
@@ -47,13 +47,13 @@ public class Dataset {
 		
 		if (first_datapoint) {
 			dataset.put(img, label);
-			representation_type = img.get_representation_name();
+			representation_type = img.get_representation_type();
 			
 			first_datapoint = false;
 			return true;
 		}
 		else {
-			if (img.get_representation_name().equals(representation_type)) {
+			if (img.get_representation_type().equals(representation_type)) {
 				if (!dataset.containsKey(img)) {
 					dataset.put(img, label);
 					return true;
@@ -85,6 +85,9 @@ public class Dataset {
 	}
 	
 	public void load_dataset_from_directory(String dir_path) {
+		// reset the dataset and load all the images ( their representations to be more accurate )
+		// to RAM.
+		
 		reset();
 		
 		try {

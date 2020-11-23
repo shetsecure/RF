@@ -1,33 +1,35 @@
-import java.util.Map;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Main {
 
 	public static void main(String[] args) {
-//		try {
-//			Image img = new Image(new Representation("project_files/E34/s01n008.E34"));
-//			Image img2 = new Image(new Representation("project_files/E34/s01n008.E34"));
-//			System.out.println(img.equals(img2));
-//			System.out.println(img.get_label());
-//			System.out.println(img.get_class());
-//			System.out.println(img.get_representation_name());
-//			System.out.println(img.get_representation().get_data());
-//			System.out.println(img.get_representation().get_filename());
-//		} catch (BadRepresentationFileException e) {
-//			e.printStackTrace();
-//		}
+		// DEMO
+
+		Dataset training_dataset = new Dataset("project_files/E34/train/");
+		Dataset test_dataset = new Dataset("project_files/E34/test/");
 		
-		Dataset d = new Dataset("project_files/SA");
-		try {
-			d.add_datapoint(new Image(new Representation("project_files/SA/s01n005.SA")), 2);
-			d.add_datapoint(new Image(new Representation("project_files/F0/s01n004.F0")), 2);
-		} catch (BadRepresentationFileException e) {
-			e.printStackTrace();
-		}
+		System.out.println("Training dataset size : " + training_dataset.size());
+		System.out.println("Testing dataset size : " + test_dataset.size());
 		
-		for(Map.Entry<Image,Integer> entry : d.entrySet()) 
-			System.out.println(entry.getKey() + " -> Label: " + entry.getValue());
+		int k = 1; // k = 1, will always result in a 100% training accuracy
+		int p = 1; // Minkowski metric parameter
+		KnnClassifier knn = new KnnClassifier(k, p);
 		
-		System.out.println("Size of dataset: " + d.size());
+		knn.train(training_dataset);
+		
+		System.out.println("Using " + knn);
+		
+		System.out.println("Training accuracy: " + knn.accuracy(training_dataset) * 100 + "%");
+		
+		// horrible results for now...
+		System.out.println("Testing accuracy: " + knn.accuracy(test_dataset) * 100 + "%");
+
+		
+		
 	}
 
 }
