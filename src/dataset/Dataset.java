@@ -5,7 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,7 +35,7 @@ public class Dataset {
 	private List<Double> mins, maxs; // will be initialized in the first insertion
 	
 	public Dataset() {
-		dataset = new HashMap<>();
+		dataset = new LinkedHashMap<>(); // to preserve order of insertion
 		representation_type = "";
 		first_datapoint = true;
 	}

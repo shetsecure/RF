@@ -45,27 +45,25 @@ public abstract class AbstractClassifier {
 	
 	protected double dist(double[] x, double[] y, int p) {
 		// generally for debugging purposes
-		assert p == 1 || p == 2;
+		assert p > 0;
 		
 		if (p == 1)
 			return manhattan_dist(x, y);
+		else if (p == 2)
+			return euclidean_dist(x, y);
 		
-		return euclidean_dist(x, y);
+		return minkowski_dist(x, y, p);
 	}
 	
 	// Overloading of the method above to make things simpler
 	
 	protected double dist(List<Double> l_x, List<Double> l_y, int p) {
 		// generally for debugging purposes
-		assert p == 1 || p == 2;
 		
 		double[] x = convert_list_to_double(l_x);
 		double[] y = convert_list_to_double(l_y);
 		
-		if (p == 1)
-			return manhattan_dist(x, y);
-		
-		return euclidean_dist(x, y);
+		return dist(x, y, p);
 	}
 	
 	protected double dist(Representation r_x, Representation r_y, int p) {	
@@ -90,7 +88,7 @@ public abstract class AbstractClassifier {
 	}
 	
 	protected double manhattan_dist(double[] x , double[] y) {
-		assert x.length == y.length;
+		assert x.length > 0 && x.length == y.length;
 		
 		double sum = 0;
 		
@@ -98,6 +96,18 @@ public abstract class AbstractClassifier {
 			sum += Math.abs((x[i] - y[i]));
 		
 		return sum;
+	}
+	
+	protected double minkowski_dist(double[] x, double[] y, int p) {
+		assert p > 0;
+		assert x.length > 0 && x.length == y.length;
+		
+		double sum = 0;
+		
+		for (int i = 0; i < x.length; i++)
+			sum += Math.pow((x[i] - y[i]), p);
+		
+		return Math.pow(sum, 1.0/p);
 	}
 	
 	protected double[] convert_list_to_double(List<Double> l) {

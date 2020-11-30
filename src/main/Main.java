@@ -1,12 +1,10 @@
 package main;
 import java.io.IOException;
-import java.util.*;
 import java.util.stream.Collectors;
 
 import dataset.*;
 import classifiers.Centroid;
 import classifiers.Kmeans;
-import classifiers.KmeansClassifier;
 
 public class Main {
 
@@ -14,19 +12,28 @@ public class Main {
 		// DEMO
 		//System.out.println("Working Directory = " + System.getProperty("user.dir"));
 		
-		Dataset training_dataset = new Dataset("project_files/E34/kmeans/");
-		Dataset test_dataset = new Dataset("project_files/E34/test/");
+		Dataset training_dataset = new Dataset("project_files/GFD/train/");
+		Dataset test_dataset = new Dataset("project_files/GFD/test/");	
+		
+		Kmeans kmeans = new Kmeans(9, 2, 100, "kmeans++");
+		kmeans.train(training_dataset);
+		System.out.println(kmeans.clusters.keySet());
+		System.out.println("Distinct labels: " + kmeans.clusters.keySet().stream().map(Centroid::get_label)
+														.distinct().collect(Collectors.toList()).size());
+		
+		System.out.println(kmeans.accuracy(training_dataset));
+		System.out.println(kmeans.accuracy(test_dataset));
+		
+//		try {
+//			Image img = new Image(new Representation("/home/shetsecure/eclipse-workspace/RF/project_files/E34/kmeans/s03n002.E34"));
+//			Dataset d = new Dataset();
+//			d.add_datapoint(img, 3);
 //			
-//		Kmeans kmeans = new Kmeans(4, 2, 100, "++");
-//		kmeans.train(training_dataset);
-//		System.out.println(kmeans.accuracy(training_dataset));
-//		System.out.println(kmeans.clusters.keySet());
-
-		KmeansClassifier kmeans1 = new KmeansClassifier(4);
-		kmeans1.train(training_dataset);		
-		System.out.println(kmeans1.accuracy(training_dataset));
-		System.out.println(kmeans1.centroids_map.values());
-		System.out.println(kmeans1.centroids_map.values().stream().distinct().collect(Collectors.toList()).size());
+//			System.out.println(kmeans1.accuracy(d));
+//		} catch (BadRepresentationFileException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		
 //		demo();
 		
@@ -66,7 +73,7 @@ public class Main {
 			d.add_datapoint(img, img.get_label());
 		}
 		
-		Kmeans kmeans = new Kmeans(3, 2, 10000, "++");
+		Kmeans kmeans = new Kmeans(3, 2, 100, "kmeans++");
 		kmeans.train(d);
 		System.out.println(kmeans.accuracy(d));
 		System.out.println(kmeans.clusters.keySet());
@@ -75,11 +82,6 @@ public class Main {
 			System.out.println("Image label = " + i.get_label() + " -> predicted " + kmeans.predict(i));
 		
 		System.out.println("Image label = " + img4.get_label() + " -> predicted " + kmeans.predict(img4));
-		
-		KmeansClassifier kmeans_demo = new KmeansClassifier(2);
-		kmeans_demo.train(d);
-		System.out.println(kmeans_demo.accuracy(d));
-		System.out.println(kmeans_demo.centroids_map);
 	}
 
 }

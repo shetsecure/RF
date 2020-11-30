@@ -1,5 +1,6 @@
 package dataset;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Image implements Cloneable {
@@ -74,6 +75,10 @@ public class Image implements Cloneable {
 	
 	public Representation get_representation() {
 		return rep;
+	}
+	
+	public List<Double> get_coords() {
+		return rep.get_data();
 	}
 	
 	private boolean conclude_label_from_filename() {
