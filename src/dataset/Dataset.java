@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -132,6 +133,26 @@ public class Dataset {
 				System.err.println("Skipping " + file.getName() + " -> Bad format");
 			}	
 		
+	}
+	
+	public void shuffle() {
+		/*
+		 * Shuffle dataset -> Map<Image, Integer>
+		 * 
+		 */
+		
+		assert dataset != null && dataset.size() > 0;
+		// Shuffle the keys
+		List<Image> imgs_list = new ArrayList<>(dataset.keySet());
+		Collections.shuffle(imgs_list);
+		
+		// construct the new shuffled map
+		Map<Image, Integer> shuffled_dataset = new LinkedHashMap<>();
+		imgs_list.forEach(img -> shuffled_dataset.put(img, dataset.get(img)));
+		
+		// overwrite the old dataset with the new shuffled one
+		
+		dataset = shuffled_dataset;
 	}
 	
 	// Delegate

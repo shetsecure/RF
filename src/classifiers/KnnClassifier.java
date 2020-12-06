@@ -1,6 +1,7 @@
 package classifiers;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -81,6 +82,10 @@ public class KnnClassifier extends AbstractClassifier{
 		return mode;
 	}
 	
+	@Override
+	public void reset() {
+		// nothing to reset here, the next training is just a simple assignement that will overwrite the old dataset.
+	}
 
 	@Override
 	public String toString() {

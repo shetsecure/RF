@@ -15,7 +15,7 @@ import java.util.stream.IntStream;
 import dataset.Dataset;
 import dataset.Image;
 
-public class Kmeans extends AbstractClassifier {
+public class KmeansClassifier extends AbstractClassifier {
 	/*
 	 * Two initializations method:
 	 * 
@@ -39,22 +39,22 @@ public class Kmeans extends AbstractClassifier {
 	private String init_method; // which init method will be used
 	
 	private Dataset training_dataset;
-	public Map<Centroid, List<Image>> clusters; // list of constructed clusters
+	private Map<Centroid, List<Image>> clusters; // list of constructed clusters
 	
 	private static final Random random = new Random();
 	
 	@SuppressWarnings("unused")
-	private Kmeans() {} // forcing the user to specify k and p
+	private KmeansClassifier() {} // forcing the user to specify k and p
 	
-	public Kmeans(int k, int p) {
+	public KmeansClassifier(int k, int p) {
 		this(k, p, 100, "kmeans++"); // use k-means++ by default
 	}
 	
-	public Kmeans(int k, int p, long max_iter) {
+	public KmeansClassifier(int k, int p, long max_iter) {
 		this(k, p, max_iter, "kmeans++");
 	}
 	
-	public Kmeans(int k, int p, long max_iter, String init_method) {
+	public KmeansClassifier(int k, int p, long max_iter, String init_method) {
 		assert k > 0;
 		assert p > 0;
 		assert max_iter > 0;
@@ -128,7 +128,7 @@ public class Kmeans extends AbstractClassifier {
 			
 		} while (! last_centroids.equals(avg_centroids) && counter++ < max_iter);
 		
-		System.out.println("iterations = " + counter);
+//		System.out.println("iterations = " + counter);
 		
 		List<Integer> possible_labels = IntStream.range(1, 10).boxed().collect(Collectors.toList());
 		
@@ -159,6 +159,15 @@ public class Kmeans extends AbstractClassifier {
 		assert img.get_representation_type().equals(training_dataset.get_representation_type());
 		
 		return get_the_nearest_centroid(img, List.copyOf(clusters.keySet())).getKey().get_label();
+	}
+	
+	@Override
+	public void reset() {
+		this.clusters = new LinkedHashMap<>();
+	}
+	
+	public Map<Centroid, List<Image>> get_clusters() {
+		return clusters;
 	}
 
 	private List<Centroid> get_random_centroids() {

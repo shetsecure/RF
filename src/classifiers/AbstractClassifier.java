@@ -17,9 +17,11 @@ public abstract class AbstractClassifier {
 	 *  
 	 */
 	
-	protected abstract boolean train(Dataset training_dataset);
+	public abstract boolean train(Dataset training_dataset);
 	
-	protected abstract int predict(Image img);
+	public abstract int predict(Image img);
+	
+	public abstract void reset(); // used mainly when performing k-cross-val
 	
 	@Override
 	public abstract String toString();
@@ -43,7 +45,7 @@ public abstract class AbstractClassifier {
 		return (double) counter / size;
 	}
 	
-	protected double dist(double[] x, double[] y, int p) {
+	public double dist(double[] x, double[] y, int p) {
 		// generally for debugging purposes
 		assert p > 0;
 		
@@ -57,7 +59,7 @@ public abstract class AbstractClassifier {
 	
 	// Overloading of the method above to make things simpler
 	
-	protected double dist(List<Double> l_x, List<Double> l_y, int p) {
+	public double dist(List<Double> l_x, List<Double> l_y, int p) {
 		// generally for debugging purposes
 		
 		double[] x = convert_list_to_double(l_x);
@@ -66,17 +68,17 @@ public abstract class AbstractClassifier {
 		return dist(x, y, p);
 	}
 	
-	protected double dist(Representation r_x, Representation r_y, int p) {	
+	public double dist(Representation r_x, Representation r_y, int p) {	
 		// will be used in production
 		return dist(r_x.get_data(), r_y.get_data(), p);
 	}
 	
-	protected double dist(Image img_x, Image img_y, int p) {
+	public double dist(Image img_x, Image img_y, int p) {
 		// will be used in production
 		return dist(img_x.get_representation(), img_y.get_representation(), p);
 	}
 	
-	protected double euclidean_dist(double[] x, double[] y) {
+	public double euclidean_dist(double[] x, double[] y) {
 		assert x.length == y.length;
 		
 		double sum = 0;
@@ -87,7 +89,7 @@ public abstract class AbstractClassifier {
 		return Math.sqrt(sum);
 	}
 	
-	protected double manhattan_dist(double[] x , double[] y) {
+	public double manhattan_dist(double[] x , double[] y) {
 		assert x.length > 0 && x.length == y.length;
 		
 		double sum = 0;
@@ -98,7 +100,7 @@ public abstract class AbstractClassifier {
 		return sum;
 	}
 	
-	protected double minkowski_dist(double[] x, double[] y, int p) {
+	public double minkowski_dist(double[] x, double[] y, int p) {
 		assert p > 0;
 		assert x.length > 0 && x.length == y.length;
 		
@@ -110,7 +112,7 @@ public abstract class AbstractClassifier {
 		return Math.pow(sum, 1.0/p);
 	}
 	
-	protected double[] convert_list_to_double(List<Double> l) {
+	public double[] convert_list_to_double(List<Double> l) {
 		boolean null_exists = l.stream().anyMatch(d -> d == null);
 		
 		if (null_exists) 
