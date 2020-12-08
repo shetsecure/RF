@@ -58,8 +58,9 @@ public class KmeansClassifier extends AbstractClassifier {
 		assert k > 0;
 		assert p > 0;
 		assert max_iter > 0;
-		assert init_method.toLowerCase().equals("random") 
-			|| init_method.toLowerCase().equals("kmeans++");
+		assert init_method.toLowerCase().equals("random") // completely random ( i.e random from min_value to max_value )
+			|| init_method.toLowerCase().equals("enhanced_random") // enhanced random takes random from specific range, see below
+			|| init_method.toLowerCase().equals("kmeans++"); // kmeans++ init
 		
 		
 		this.k = k;
@@ -75,13 +76,18 @@ public class KmeansClassifier extends AbstractClassifier {
 		assert training_dataset != null && training_dataset.size() > 0;
 		
 		this.training_dataset = training_dataset;
+		boolean enhanced = false;
 		
 		// STEP 1: INITIALIZATION
 		// 1.a Get the initial_centroids
 		List<Centroid> initial_centroids;
 		
 		if (init_method.equals("random"))
-			initial_centroids = get_random_centroids();
+			initial_centroids = get_random_centroids(false);
+		else if (init_method.equals("enhanced_random")) {
+			initial_centroids = get_random_centroids(true);
+			enhanced = true;
+		}
 		else
 			initial_centroids = kmeans_plus_plus_init();
 				
@@ -128,7 +134,7 @@ public class KmeansClassifier extends AbstractClassifier {
 			
 		} while (! last_centroids.equals(avg_centroids) && counter++ < max_iter);
 		
-//		System.out.println("iterations = " + counter);
+		System.out.println("iterations = " + counter);
 		
 		List<Integer> possible_labels = IntStream.range(1, 10).boxed().collect(Collectors.toList());
 		
@@ -140,17 +146,18 @@ public class KmeansClassifier extends AbstractClassifier {
 			centroid.set_label(label);
 		}
 		
-		// Handling the case of empty clusters if we did a random initialization
-		// randomly distribute non-used labels to isolated centroids
-		for (Centroid centroid : clusters.keySet()) {
-			if (centroid.get_label() == -100) {
-				int random_index = random.nextInt(possible_labels.size());
-				centroid.set_label(possible_labels.get(random_index));
-				
-				possible_labels.remove(random_index);
+		if (enhanced) {
+			// Handling the case of empty clusters if we did a random initialization
+			// randomly distribute non-used labels to isolated centroids
+			for (Centroid centroid : clusters.keySet()) {
+				if (centroid.get_label() == -100) {
+					int random_index = random.nextInt(possible_labels.size());
+					centroid.set_label(possible_labels.get(random_index));
+					
+					possible_labels.remove(random_index);
+				}
 			}
 		}
-		
 		return true;
 	}
 
@@ -158,7 +165,7 @@ public class KmeansClassifier extends AbstractClassifier {
 	public int predict(Image img) {
 		assert img.get_representation_type().equals(training_dataset.get_representation_type());
 		
-		return get_the_nearest_centroid(img, List.copyOf(clusters.keySet())).getKey().get_label();
+		return get_the_nearest_centroid(img, new ArrayList<>(clusters.keySet()) ).getKey().get_label();
 	}
 	
 	@Override
@@ -170,30 +177,51 @@ public class KmeansClassifier extends AbstractClassifier {
 		return clusters;
 	}
 
-	private List<Centroid> get_random_centroids() {
+	private List<Centroid> get_random_centroids(boolean enhanced) {
+		/*
+		 * enhanced random will take random value in [min, max] range for each attribute
+		 * 
+		 * completely random will take random value in [MIN_VALUE, MAX_VALUE]
+		 */
 		List<Centroid> random_centroids = new ArrayList<>();
 		
 		for(int i = 0; i < this.k; i++) 
-			random_centroids.add(new Centroid(get_random_coords()));
+			random_centroids.add(new Centroid(get_random_coords(enhanced)));
 		
 		return random_centroids;
 	}
 	
-	private List<Double> get_random_coords() {
-		List<Double> random_coords = new ArrayList<>();
+	private List<Double> get_random_coords(boolean enhanced) {
+		/*
+		 * enhanced random will take random value in [min, max] range for each attribute
+		 * 
+		 * completely random will take random value in [MIN_VALUE, MAX_VALUE]
+		 */
 		
-		// getting the range of [min-max] list for each attribute 
+		List<Double> random_coords = new ArrayList<>();
 		List<Double> mins = training_dataset.get_mins();
 		List<Double> maxs = training_dataset.get_maxs();
 		
 		int dim = mins.size();
 		double max, min;
 		
-		for(int i = 0; i < dim; i++) {
-			max = maxs.get(i);
-			min = mins.get(i);
+		if (enhanced) {
+			// getting the range of [min-max] list for each attribute 
 			
-			random_coords.add(random.nextDouble() * (max - min) + min);
+			for(int i = 0; i < dim; i++) {
+				max = maxs.get(i);
+				min = mins.get(i);
+				
+				random_coords.add(random.nextDouble() * (max - min) + min);
+			}
+		}
+		else {
+			for(int i = 0; i < dim; i++) {
+				max = Double.MAX_VALUE;
+				min = Double.MIN_VALUE;
+				
+				random_coords.add(random.nextDouble() * (max - min) + min);
+			}
 		}
 		
 		return random_coords;

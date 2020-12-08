@@ -5,7 +5,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
@@ -26,8 +28,8 @@ public class Main {
 	public static void main(String[] args) throws IOException {
 		// DEMO
 		System.out.println("Working Directory = " + System.getProperty("user.dir"));
-		
-		Dataset training_dataset = new Dataset("project_files/E34/kmeans/");
+				
+		Dataset training_dataset = new Dataset("project_files/GFD/");
 //		Dataset test_dataset = new Dataset("project_files/GFD/test/");	
 		
 //		AbstractClassifier kmeans = new KmeansClassifier(5, 2, 100, "random");
@@ -38,32 +40,44 @@ public class Main {
 //		System.out.println(kmeans.get_clusters().keySet());
 		
 		AbstractClassifier knn = new KnnClassifier(3);
-		AbstractClassifier kmeans = new KmeansClassifier(9, 2);
+		AbstractClassifier en_rand_kmeans = new KmeansClassifier(9, 2, 100, "enhanced_random");
+		AbstractClassifier random_kmeans = new KmeansClassifier(9, 2, 100, "random");
+		AbstractClassifier kmeans = new KmeansClassifier(9, 2, 100, "kmeans++");
+		
+		Evaluation.train_test_split_accuracy(Arrays.asList(new AbstractClassifier[] {kmeans, en_rand_kmeans, random_kmeans}), training_dataset, 0.7, true);
+		
+//		List<Dataset> datasets = Evaluation.split_dataset(training_dataset, 0.7);
+//		
+//		System.out.println(datasets.get(0).size());
+//		System.out.println(datasets.get(1).size());
+//		
+//		System.out.println("\ndistinct labels in training set = " + datasets.get(0).get_stratums().keySet().size());
+//		System.out.println("distinct labels in test set = " + datasets.get(1).get_stratums().keySet().size());
+//		System.out.println();
+//		
+//		
+//		System.out.println("train set");
+//		for( int i : datasets.get(0).get_stratums().keySet() ) 
+//			System.out.println("class " + i + " has " + datasets.get(0).get_stratums().get(i).size() + " instances");
+//		
+//		System.out.println("\ntest set");
+//		for( int i : datasets.get(1).get_stratums().keySet() ) 
+//			System.out.println("class " + i + " has " + datasets.get(1).get_stratums().get(i).size() + " instances");
+//		
+//		System.out.println(datasets.get(0).get_dataset());
+//		System.out.println(datasets.get(1).get_dataset());
+		
+//		Evaluation.accuracy(random_kmeans, training_dataset, training_dataset);
+//		Evaluation.accuracy(Arrays.asList(new AbstractClassifier[] {kmeans, en_rand_kmeans, random_kmeans}), training_dataset, training_dataset);
+//		Evaluation.cross_validation(kmeans, training_dataset, 1005, true);
 //		Evaluation.cross_validation(Arrays.asList(new AbstractClassifier[] {knn, kmeans}), training_dataset, 4, true, true);
 		
-		ConfusionMatrix c = Evaluation.confusion_matrix(knn, training_dataset, training_dataset);
-		System.out.println(c);
-		System.out.println(c.get_accuracy());
-		
-//		int group_size = 5;
-//		
-//		List<Integer> all_indices = IntStream.range(0, 21).boxed().collect(Collectors.toList());
-//		
-//		// constructing a list of indices
-//		List<List<Integer>> k_index_lists = new ArrayList<>();
-//		
-//		for (int i = 0; i < 4; i++) {
-//			// shuffle the indices list
-//			Collections.shuffle(all_indices);
-//			
-//			k_index_lists.add(all_indices.stream().limit(group_size).collect(Collectors.toList()));
-//			all_indices.removeAll(all_indices.stream().limit(group_size).collect(Collectors.toList()));
-//		}
-//		System.out.println(k_index_lists);
-//		System.out.println(k_index_lists.get(3));
-//		
-////		System.out.println(k_index_lists.stream().flatMap(List::stream).collect(Collectors.toList()));
-//		System.out.println(k_index_lists.stream().flatMap(List::stream).filter(i -> !k_index_lists.get(3).contains(i)).collect(Collectors.toList()));
+//		ConfusionMatrix c = Evaluation.confusion_matrix(knn, training_dataset, training_dataset);
+//		System.out.println(c);
+//		System.out.println(c.get_accuracy());
+//		System.out.println();
+//		System.out.println(c.get_recall());
+//		System.out.println(c.get_precision());
 	}
 	
 	

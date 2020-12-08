@@ -2,7 +2,10 @@ package eval;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -17,7 +20,41 @@ public final class Evaluation {
 	private Evaluation() {}
 	
 	/*
-	 * Comparing a list of classifiers with K-fold cross validation (totally Random), Stratified version below.
+	 * Comparing a list of classifiers accuracy ratio given train and test datasets.
+	 */
+	public static Map<AbstractClassifier, Double> accuracy(List<AbstractClassifier> classifiers, Dataset train_set, Dataset test_set, boolean verbose) {
+		/*
+		 * This method will train all classifiers on train_set, and calculate the accuracy on both train and test sets.
+		 * 
+		 * Only accuracies of test set will be returned in the form of a map < Classifier, his_test_accuracy >
+		 * 
+		 * Verbose will print the results, for each classifier his training and test accuracies.
+		 * 
+		 */
+		
+		assert classifiers.size() > 0;
+		
+		Map<AbstractClassifier, Double> accuracies_map = new LinkedHashMap<>();
+		
+		// train all classifiers
+		for (AbstractClassifier classifier : classifiers)
+			classifier.train(train_set);
+		
+		// calculate the accuracies and print infos if verbose
+		double test_acc;
+		for (AbstractClassifier classifier : classifiers) {
+			test_acc = classifier.accuracy(test_set);
+			accuracies_map.put(classifier, test_acc);
+			
+			if(verbose)
+				System.out.println(classifier + " -> train_acc : " + classifier.accuracy(train_set) + " ; test_acc : " + test_acc + "\n");
+		}
+		
+		return accuracies_map;
+	}
+	
+	/*
+	 * Comparing a list of classifiers with K-fold cross validation.
 	 */
 	
 	public static List<CrossValEntry> cross_validation(List<AbstractClassifier> classifiers, Dataset dataset, int k, boolean verbose, boolean shuffle) {
@@ -176,16 +213,124 @@ public final class Evaluation {
 		
 		return matrices;
 	}
-
-	// special case: just one classifier
-	@SuppressWarnings("serial")
-	public static CrossValEntry cross_validation(AbstractClassifier classifier, Dataset dataset, int k, boolean verbose, boolean shuffle) {
-		return cross_validation(new ArrayList<AbstractClassifier>(){{add(classifier);}}, dataset, k, verbose, shuffle).get(0);
+	
+	public static List<Double> train_test_split_accuracy(List<AbstractClassifier> classifiers, Dataset dataset, double train_percentage, boolean verbose) {
+		/*
+		 * This method will split the dataset into two datasets, using the training_percentage.
+		 * Then it will train the passed classifiers on the training dataset, and then test them on the test_set
+		 * 
+		 * returns: a list of the corresponding test accuracies
+		 */
+		
+		// split the dataset
+		List<Dataset> d = split_dataset(dataset, train_percentage);
+		Dataset train_set= d.get(0);
+		Dataset test_set= d.get(1);
+		
+		if (verbose) 
+			System.out.println("Training dataset size = " + train_set.size() + " while test set size is " + test_set.size());
+		
+		
+		List<Double> test_accuracies = new ArrayList<>();
+		// train all classifiers
+		for (AbstractClassifier classifier : classifiers) {
+			classifier.train(train_set);
+			
+			double test_acc = classifier.accuracy(test_set);
+			
+			if (verbose) 
+				System.out.println(classifier + " had a training acc of : " + classifier.accuracy(train_set) + " and test acc: " + test_acc);
+			
+			test_accuracies.add(test_acc);
+		}
+		
+		return test_accuracies;
 	}
+
+	@SuppressWarnings("serial")
+	public static List<Dataset> split_dataset(Dataset dataset, double train_percentage) {
+		/*
+		 *  will do stratified random sampling by taking split_percentage of each class.
+		 *  
+		 *  Returns a list of datasets, first is training set second is test set. 
+		 */
+		
+		assert dataset != null && dataset.size() > 0;
+		assert train_percentage > 0 && train_percentage <= 1;
+		
+		Dataset train_set = new Dataset();
+		Dataset test_set = new Dataset();
+		
+		int test_sample_size, label;
+		// for each class/stratum get random sample of size stratum_size * split_percentage, the rest to the test_set
+		for (Map.Entry<Integer, List<Image>> entry : dataset.get_stratums().entrySet()) {
+			// construct a list of indices of the size of the current stratum
+			List<Integer> indices = IntStream.range(0, entry.getValue().size()).boxed().collect(Collectors.toList());
+			
+			// shuffle the list
+			Collections.shuffle(indices);
+			
+			// take the first (stratum_size -  [stratum_size * split_percentage]) and add them to the test_set
+			test_sample_size = indices.size() - (int) Math.floor(indices.size() * train_percentage);
+			label = entry.getKey();
+			
+			for (int i = 0; i < test_sample_size; i++) {
+				Image img = entry.getValue().get(indices.get(i));
+				test_set.add_datapoint(img, label);
+			}
+			
+			// rest to train set
+			for (; test_sample_size < indices.size(); test_sample_size++) {
+				Image img = entry.getValue().get(indices.get(test_sample_size));
+				train_set.add_datapoint(img, label);
+			}
+			
+		}
+		
+//		System.out.println(train_set.size() + " + " + test_set.size() + " = " + dataset.size());
+//		
+//		List<Image> imgs = test_set.keySet().stream().collect(Collectors.toList());
+//		imgs.addAll(train_set.keySet());
+//		
+//		System.out.println(dataset.keySet().stream().collect(Collectors.toList()).containsAll(imgs));
+//		System.out.println(imgs.containsAll(dataset.keySet().stream().collect(Collectors.toList())));
+		
+//		System.out.println(train_set.get_stratums().keySet().equals(test_set.get_stratums().keySet()));
+		
+		return new ArrayList<Dataset>() {{
+			add(train_set);
+			add(test_set);
+		}};
+	}
+	// special cases: just one classifier
+	public static Map<AbstractClassifier, Double> accuracy(List<AbstractClassifier> classifiers, Dataset train_set, Dataset test_set) {
+		return accuracy(classifiers, train_set, test_set, true);
+	}
+	
+	@SuppressWarnings("serial")
+	public static Map<AbstractClassifier, Double> accuracy(AbstractClassifier classifier, Dataset train_set, Dataset test_set) {
+		return accuracy(new ArrayList<AbstractClassifier>(){{add(classifier);}}, train_set, test_set, true);
+	}
+	
+	@SuppressWarnings("serial")
+	public static Map<AbstractClassifier, Double> accuracy(AbstractClassifier classifier, Dataset train_set, Dataset test_set, boolean verbose) {
+		return accuracy(new ArrayList<AbstractClassifier>(){{add(classifier);}}, train_set, test_set, verbose);
+	}
+	
 	
 	@SuppressWarnings("serial")
 	public static CrossValEntry cross_validation(AbstractClassifier classifier, Dataset dataset, int k) {
 		return cross_validation(new ArrayList<AbstractClassifier>(){{add(classifier);}}, dataset, k, false, true).get(0);
+	}
+	
+	@SuppressWarnings("serial")
+	public static CrossValEntry cross_validation(AbstractClassifier classifier, Dataset dataset, int k, boolean verbose) {
+		return cross_validation(new ArrayList<AbstractClassifier>(){{add(classifier);}}, dataset, k, verbose, true).get(0);
+	}
+	
+	@SuppressWarnings("serial")
+	public static CrossValEntry cross_validation(AbstractClassifier classifier, Dataset dataset, int k, boolean verbose, boolean shuffle) {
+		return cross_validation(new ArrayList<AbstractClassifier>(){{add(classifier);}}, dataset, k, verbose, shuffle).get(0);
 	}
 	
 	@SuppressWarnings("serial")

@@ -27,16 +27,20 @@ public class Dataset {
 	private boolean first_datapoint; // useful for the next insertion after the rep_type is determined
 	
 	/*
-	 * very useful for Kmeans random initialization step, keeping the range = (min, max) 
-	 * for each feature // so we can generate the first centroids accordingly
+	 * very useful for Kmeans enhanced-random initialization step, keeping the range = (min, max) 
+	 * for each attribute, so we can generate the first centroids accordingly
 	 * 
-	 * So now each feature i will range between [mins.get(i); maxs.get(i)] 
+	 * So now each attribute i will range between [mins.get(i); maxs.get(i)] 
 	 */	
-	
 	private List<Double> mins, maxs; // will be initialized in the first insertion
+	
+	
+	private Map<Integer, List<Image>> stratums; // useful to construct a stratified CV or split_train-test 
+	
 	
 	public Dataset() {
 		dataset = new LinkedHashMap<>(); // to preserve order of insertion
+		stratums = new LinkedHashMap<>();
 		representation_type = "";
 		first_datapoint = true;
 	}
@@ -48,6 +52,10 @@ public class Dataset {
 	
 	public Map<Image, Integer> get_dataset() {
 		return dataset;
+	}
+	
+	public Map<Integer, List<Image>> get_stratums() {
+		return stratums;
 	}
 	
 	public String get_representation_type() {
@@ -66,11 +74,18 @@ public class Dataset {
 		assert label >= 1 && label <= 9;
 		
 		if (first_datapoint) {
+			// add the datapoint to the dataset
 			dataset.put(img, label);
+			
+			// construct the correpsonding strata
+			stratums.put(label, new ArrayList<>() {{ add(img); }});
+			
+			// define the default representation type for this dataset, so that we accept only the same reps from now on
 			representation_type = img.get_representation_type();
 			
 			first_datapoint = false;
 			
+			// construct our mins_maxs list to keep track of min/max of each attribute
 			mins = new ArrayList<>(img.get_representation().get_data());
 			maxs = new ArrayList<>(img.get_representation().get_data());
 			
@@ -80,7 +95,16 @@ public class Dataset {
 			if (img.get_representation_type().equals(representation_type)) {
 				if (!dataset.containsKey(img)) {
 					dataset.put(img, label);
+					
+					// update stratums
+					if(!stratums.containsKey(label))
+						stratums.put(label, new ArrayList<>());
+					
+					stratums.get(label).add(img);
+					
+					// update ranges of mins/maxs for each attribute
 					update_range(img);
+					
 					return true;
 				}
 				else 
