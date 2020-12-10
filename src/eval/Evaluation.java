@@ -33,6 +33,8 @@ public final class Evaluation {
 		 */
 		
 		assert classifiers.size() > 0;
+		for (int i = 0; i < classifiers.size(); i++)
+			assert classifiers.get(i) != null;
 		
 		Map<AbstractClassifier, Double> accuracies_map = new LinkedHashMap<>();
 		
@@ -81,6 +83,9 @@ public final class Evaluation {
 		}
 		
 		if (leave_one_out) {
+			if (verbose)
+				System.out.println("Performing leave one out..." + '\n');
+			
 			// pick one instance for test, the rest for training
 			int choice = 0, corresponding_label; 
 			Image picked_instance;
@@ -193,6 +198,8 @@ public final class Evaluation {
 	
 	public static List<ConfusionMatrix> confusion_matrix(List<AbstractClassifier> classifiers, Dataset train_dataset, Dataset test_dataset) {
 		assert classifiers.size() > 0;
+		for (int i = 0; i < classifiers.size(); i++)
+			assert classifiers.get(i) != null;
 		
 		List<ConfusionMatrix> matrices = new ArrayList<>(); // to be returned
 		Set<Image> datapoints = test_dataset.keySet();
@@ -203,6 +210,7 @@ public final class Evaluation {
 		for (AbstractClassifier classifier : classifiers) {
 			// train the classifer on the training dataset
 			classifier.train(train_dataset);
+			System.out.println(classifier.accuracy(train_dataset));
 			
 			// construct the predicted labels list
 			List<Integer> predicted_labels = datapoints.stream().map(img -> classifier.predict(img)).collect(Collectors.toList());
@@ -221,6 +229,9 @@ public final class Evaluation {
 		 * 
 		 * returns: a list of the corresponding test accuracies
 		 */
+		assert classifiers.size() > 0;
+		for (int i = 0; i < classifiers.size(); i++)
+			assert classifiers.get(i) != null;
 		
 		// split the dataset
 		List<Dataset> d = split_dataset(dataset, train_percentage);
@@ -228,7 +239,7 @@ public final class Evaluation {
 		Dataset test_set= d.get(1);
 		
 		if (verbose) 
-			System.out.println("Training dataset size = " + train_set.size() + " while test set size is " + test_set.size());
+			System.out.println("Training dataset size = " + train_set.size() + " while test set size is " + test_set.size() + "\n");
 		
 		
 		List<Double> test_accuracies = new ArrayList<>();
@@ -244,6 +255,11 @@ public final class Evaluation {
 			test_accuracies.add(test_acc);
 		}
 		
+		if (verbose) {
+			int best_cl_index = test_accuracies.indexOf(Collections.max(test_accuracies));
+			System.out.println("The best classifier is " + classifiers.get(best_cl_index) + " with train acc = " + classifiers.get(best_cl_index).accuracy(train_set) + " with a test acc of " + test_accuracies.get(best_cl_index));
+		}
+		
 		return test_accuracies;
 	}
 
@@ -256,7 +272,7 @@ public final class Evaluation {
 		 */
 		
 		assert dataset != null && dataset.size() > 0;
-		assert train_percentage > 0 && train_percentage <= 1;
+		assert train_percentage > 0 && train_percentage < 1;
 		
 		Dataset train_set = new Dataset();
 		Dataset test_set = new Dataset();
@@ -302,6 +318,7 @@ public final class Evaluation {
 			add(test_set);
 		}};
 	}
+	
 	// special cases: just one classifier
 	public static Map<AbstractClassifier, Double> accuracy(List<AbstractClassifier> classifiers, Dataset train_set, Dataset test_set) {
 		return accuracy(classifiers, train_set, test_set, true);

@@ -98,8 +98,10 @@ public class Image implements Cloneable {
 				return true;
 			}
 		}
-		else 
-			System.err.println("Filename is short [" + filename + "]");
+		else {
+			System.err.println("-> " + rep.get_file_path() + ". Filename is short, or doesn't follow the convention.");
+			System.err.println("If you are using load_dataset_from_directory, please remove it.");
+		}
 		
 		return false;
 	}

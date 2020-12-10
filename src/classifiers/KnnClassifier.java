@@ -92,7 +92,6 @@ public class KnnClassifier extends AbstractClassifier{
 		StringBuilder sb = new StringBuilder();
 		sb.append("KNN Classifier with k = " + k + " and p = " + p);
 		
-		
 		return sb.toString();
 	}
 

@@ -404,7 +404,7 @@ public class KmeansClassifier extends AbstractClassifier {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Kmeans classifier with init_method = " + init_method + ", k = " + k + " p = " + p + "\n");
-		sb.append("Constructed centroids are : " + "\n" + clusters.keySet());
+//		sb.append("Constructed centroids are : " + "\n" + clusters.keySet());
 		
 		return sb.toString();
 	}

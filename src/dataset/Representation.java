@@ -117,7 +117,7 @@ public class Representation {
         	
         	// to remove the dot at the end
         	this.filename = match.substring(0, match.length() - 1); 
-        }  	 
+        }
 	}
 	
 	@Override

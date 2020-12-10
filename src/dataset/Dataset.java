@@ -24,6 +24,7 @@ public class Dataset {
 	
 	private Map<Image, Integer> dataset;
 	private String representation_type;
+	private String path;
 	private boolean first_datapoint; // useful for the next insertion after the rep_type is determined
 	
 	/*
@@ -42,11 +43,13 @@ public class Dataset {
 		dataset = new LinkedHashMap<>(); // to preserve order of insertion
 		stratums = new LinkedHashMap<>();
 		representation_type = "";
+		path = "";
 		first_datapoint = true;
 	}
 	
 	public Dataset(String dir_path) throws IOException {
 		this();
+		this.path = dir_path;
 		load_dataset_from_directory(dir_path);
 	}
 	
@@ -77,8 +80,8 @@ public class Dataset {
 			// add the datapoint to the dataset
 			dataset.put(img, label);
 			
-			// construct the correpsonding strata
-			stratums.put(label, new ArrayList<>() {{ add(img); }});
+			// construct the corresponding strata
+			stratums.put(label, new ArrayList<Image>() {{ add(img); }});
 			
 			// define the default representation type for this dataset, so that we accept only the same reps from now on
 			representation_type = img.get_representation_type();
@@ -199,6 +202,20 @@ public class Dataset {
 	
 	public boolean isEmpty() {
 		return dataset.isEmpty();
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Dataset that contains ");
+		sb.append(size());
+		sb.append(" images represented with ");
+		sb.append(representation_type);
+		sb.append(". \nPath = ");
+		sb.append(path);
+		sb.append('\n');
+		
+		return sb.toString();
 	}
 	
 	private void update_range(Image img) {
